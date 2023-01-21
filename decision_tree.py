@@ -11,7 +11,6 @@ import numpy as np
 
 def learn(task: Task):
     training_set, test_set = data_utils.get_training_and_test_sets(task)
-
     classifier = tree.DecisionTreeClassifier().fit(training_set.samples, training_set.labels)
 
     correctly_classified_count = np.sum(test_set.labels == classifier.predict(test_set.samples))

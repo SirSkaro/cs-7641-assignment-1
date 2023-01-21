@@ -13,9 +13,30 @@ class SampleSet:
     def __init__(self, samples, labels):
         self.samples = samples
         self.labels = labels
+        self._label_int_map = None
 
     def size(self) -> int:
         return self.labels.size
+
+    def num_features(self) -> int:
+        return self.samples.shape[1]
+
+    def num_classes(self) -> int:
+        return len(numpy.unique(self.labels))
+
+    def labels_as_ints(self):
+        label_map = self._label_int_map or self._create_labels_to_int_map()
+        map_function = numpy.vectorize(lambda label: label_map[label])
+        return map_function(self.labels)
+
+    def use_label_to_int_map_from(self, other: 'SampleSet'):
+        self._label_int_map = other._label_int_map
+
+    def _create_labels_to_int_map(self):
+        self._label_int_map = {}
+        for index, label in enumerate(numpy.unique(self.labels)):
+            self._label_int_map[label] = index
+        return self._label_int_map
 
 
 def parse_data(task: Task) -> Tuple[numpy.ndarray, numpy.array]:
