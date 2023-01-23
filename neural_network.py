@@ -9,6 +9,7 @@ import numpy as np
 # https://scikit-learn.org/stable/modules/neural_networks_supervised.html
 # https://www.tensorflow.org/tutorials/quickstart/beginner
 # https://www.tensorflow.org/tutorials/keras/classification
+# https://keras.io/api/layers/
 
 
 def learn(task: Task):
@@ -43,4 +44,4 @@ def learn(task: Task):
     test_set.use_label_to_int_map_from(training_set)
     loss, accuracy = classifier.evaluate(test_set.samples, test_set.labels_as_ints(), verbose=2)
 
-    return classifier, accuracy
+    return classifier, 1.0 - accuracy
