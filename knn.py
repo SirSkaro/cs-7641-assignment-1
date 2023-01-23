@@ -14,7 +14,8 @@ def learn(task: Task):
         n_neighbors=3,
         weights='uniform',
         p=2, # Euclidiean metric used
-        metric='minkowski'
+        metric='minkowski',
+        algorithm='brute'
     )
 
     classifier.fit(training_set.samples, training_set.labels)
