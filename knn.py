@@ -2,7 +2,6 @@ import data_utils
 from data_utils import Task
 
 from sklearn.neighbors import KNeighborsClassifier
-import numpy as np
 
 ### Docs used:
 # https://scikit-learn.org/stable/modules/neighbors.html
