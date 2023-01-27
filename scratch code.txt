@@ -1,0 +1,91 @@
+import data_utils
+from data_utils import Task
+from sklearn import tree
+import numpy as np
+import decision_tree
+import neural_network
+import knn
+#import tensorflow as tf
+from sklearn.neighbors import KNeighborsClassifier
+
+----------------------Tree-----------------------------
+training_set, test_set = data_utils.get_training_and_test_sets(Task.LETTER_RECOGNITION)
+
+classifier = tree.DecisionTreeClassifier()
+classifier = classifier.fit(training_set.samples, training_set.labels)
+correctly_classified_count = np.sum(test_set.labels == classifier.predict(test_set.samples))
+error = correctly_classified_count / test_set.size()
+
+decision_tree.learn(Task.LETTER_RECOGNITION)
+-----------------------------------------------------
+
+
+----------------------ANN-----------------------------
+
+training_set, test_set = data_utils.get_training_and_test_sets(Task.LETTER_RECOGNITION)
+
+classifier = tf.keras.models.Sequential([
+	tf.keras.layers.Input(shape=(training_set.num_features(),), name='input'),
+	tf.keras.layers.Dense(units=4, activation='sigmoid', name='hidden1'),
+	tf.keras.layers.Dense(units=training_set.num_classes(), name='output'),
+])
+
+classifier.compile(
+	optimizer='adam',
+	loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+	metrics=['accuracy']
+)
+
+history = classifier.fit(training_set.samples, training_set.labels_as_ints(), epochs=10)
+
+test_set.use_label_to_int_map_from(training_set)
+loss, accuracy = classifier.evaluate(test_set.samples, test_set.labels_as_ints(), verbose=2)
+
+
+
+classifier, accuracy = neural_network.learn(Task.SCRIBE_RECOGNITION)
+-----------------------------------------------------
+
+
+----------------------KNN----------------------------
+training_set, test_set = data_utils.get_training_and_test_sets(Task.LETTER_RECOGNITION)
+classifier = KNeighborsClassifier(n_neighbors=3)
+
+classifier.fit(training_set.samples, training_set.labels)
+
+error = 1.0 - classifier.predict(test_set.samples)
+
+return classifier, error
+
+
+knn.learn(Task.LETTER_RECOGNITION)
+-----------------------------------------------------
+
+
+----------------------Boosting----------------------------
+import data_utils
+from data_utils import Task
+import boost
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.base import ClassifierMixin
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import Perceptron
+from sklearn.naive_bayes import MultinomialNB
+
+weak_classifier = DecisionTreeClassifier(max_depth=15)
+weak_classifier = Perceptron(tol=1e-3, random_state=0)
+weak_classifier = MultinomialNB(force_alpha=True)
+
+training_set, test_set = data_utils.get_training_and_test_sets(Task.LETTER_RECOGNITION)
+classifier = AdaBoostClassifier(
+	n_estimators=30,
+	estimator=weak_classifier,
+	algorithm='SAMME',
+	learning_rate=1.0
+)
+
+classifier.fit(training_set.samples, training_set.labels)
+
+error = 1.0 - classifier.score(test_set.samples, test_set.labels)
+
+-----------------------------------------------------
