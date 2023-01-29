@@ -7,6 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 # https://scikit-learn.org/stable/modules/neighbors.html
 # https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
 
+
 def learn(task: Task):
     training_set, test_set = data_utils.get_training_and_test_sets(task)
     classifier = KNeighborsClassifier(
