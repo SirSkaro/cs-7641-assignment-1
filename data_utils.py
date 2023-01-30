@@ -4,6 +4,13 @@ from enum import Enum
 import numpy
 
 
+LETTER_LABELS = ['Box X Position', 'Box Y Position', 'Box Width', 'Box Height', 'Total Pixels',
+                 'Pixel Mean X-Coor.', 'Pixel Mean Y-Coor', 'X Variance', 'Y Variance', 'Mean XY Correlation',
+                 'Mean of X*X*Y', 'Mean of X*Y*Y', 'X Edge Count Mean', 'xegvy', 'Y Edge Count Mean', 'yegvx']
+LETTER_CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+                  'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+
+
 class Task(Enum):
     LETTER_RECOGNITION = ('letter recognition', 0, numpy.arange(1, 17, dtype=int), int)  # directory, index of label, data columns, data type
     SCRIBE_RECOGNITION = ('scribe recognition', 10, numpy.arange(0, 10, dtype=int), float)
