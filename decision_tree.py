@@ -54,12 +54,12 @@ def pruning(task: Task):
     ax[0].plot(candidate_alphas, node_counts, marker="o", drawstyle="steps-post")
     ax[0].set_xlabel("Alpha")
     ax[0].set_ylabel("# of Node")
-    ax[0].set_title("Number of nodes vs alpha")
+    ax[0].set_title("Number of Nodes vs Alpha")
     ax[1].plot(candidate_alphas, depth, marker="o", drawstyle="steps-post")
     ax[1].set_xlabel("Alpha")
     ax[1].set_ylabel("Tree depth")
     ax[1].set_title("Depth vs Alpha")
-    fig.savefig(f'graphs/decision tress/{task.name} - nodes+depth vs alpha.png')
+    #fig.savefig(f'graphs/decision tress/{task.name} - nodes+depth vs alpha.png')
 
     # Visualize accuracy
     print('Scoring trees')
@@ -76,12 +76,13 @@ def pruning(task: Task):
     ax.plot(candidate_alphas, train_scores, marker="o", label="train", drawstyle="steps-post")
     ax.plot(candidate_alphas, test_scores, marker="o", label="test", drawstyle="steps-post")
     ax.legend()
-    fig.savefig(f'graphs/decision tress/{task.name} - accuracy.png')
+    #fig.savefig(f'graphs/decision tress/{task.name} - accuracy.png')
 
     # return best classifier and error
     best_index = np.argmax(test_scores)
     best_classifier = pruned_classifiers[best_index]
     error = 1 - test_scores[best_index]
+    print(f'The best classifiers is at index {best_index} with an alpha of {candidate_alphas[best_index]}')
 
     return best_classifier, error
 
