@@ -6,7 +6,8 @@ import numpy
 
 LETTER_FEATURES = ['Box X Position', 'Box Y Position', 'Box Width', 'Box Height', 'Total Pixels',
                  'Pixel Mean X-Coor.', 'Pixel Mean Y-Coor', 'X Variance', 'Y Variance', 'Mean XY Correlation',
-                 'Mean of X*X*Y', 'Mean of X*Y*Y', 'X Edge Count Mean', 'xegvy', 'Y Edge Count Mean', 'yegvx']
+                 'Mean of X*X*Y', 'Mean of X*Y*Y', 'X Edge Count Mean', 'Correlation of X-ege with Y', 'Y Edge Count Mean',
+                   'Correlation of Y-ege with X']
 LETTER_CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
                   'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 

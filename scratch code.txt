@@ -9,6 +9,14 @@ import knn
 from sklearn.neighbors import KNeighborsClassifier
 
 ----------------------Tree-----------------------------
+import data_utils
+from data_utils import Task
+import decision_tree
+
+from sklearn import tree
+import numpy as np
+import graphviz
+
 training_set, test_set = data_utils.get_training_and_test_sets(Task.LETTER_RECOGNITION)
 
 classifier = tree.DecisionTreeClassifier()
