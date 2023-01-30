@@ -20,12 +20,14 @@ def round1(task: Task):
     return classifier, error
 
 
-def round1_vizualize(task: Task):
-    classifier, error = round1(task)
-    dot_data = tree.export_graphviz(classifier, out_file=None,
-                                    feature_names=data_utils.LETTER_LABELS,
-                                    class_names=data_utils.LETTER_LABELS,
+def vizualize(task: Task, round_function):
+    classifier, error = round_function(task)
+    filename = f'graphs/{task.name} - {round_function.__name__}'
+    export = tree.export_graphviz(classifier, out_file=None,
+                                    feature_names=task.value.features,
+                                    class_names=task.value.classes,
                                     filled=True, rounded=True,
-                                    special_characters=True)
-    graph = graphviz.Source(dot_data)
-    graph.render(f'{task.name} - round 1')
+                                    special_characters=True,
+                                    impurity=True)
+    graph = graphviz.Source(export)
+    graph.render(filename)

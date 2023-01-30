@@ -4,16 +4,30 @@ from enum import Enum
 import numpy
 
 
-LETTER_LABELS = ['Box X Position', 'Box Y Position', 'Box Width', 'Box Height', 'Total Pixels',
+LETTER_FEATURES = ['Box X Position', 'Box Y Position', 'Box Width', 'Box Height', 'Total Pixels',
                  'Pixel Mean X-Coor.', 'Pixel Mean Y-Coor', 'X Variance', 'Y Variance', 'Mean XY Correlation',
                  'Mean of X*X*Y', 'Mean of X*Y*Y', 'X Edge Count Mean', 'xegvy', 'Y Edge Count Mean', 'yegvx']
 LETTER_CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
                   'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
+SCRIBE_FEATURES = ['Intercolumnar Distance', 'Upper Margin', 'Lower Margin', 'Exploitation', 'Row Number', 'Modular Ratio',
+                   'Interlinear Spacing', 'Weight', 'Peak Number', 'Modular Ratio/Interlinear Spacing']
+SCRIBE_CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'W', 'X', 'Y', 'Z']
+
+
+class TaskMetadata:
+    def __init__(self, directory, label_index, data_indexes, data_type, features, classes):
+        self.directory = directory
+        self.label_index = label_index
+        self.data_indexes = data_indexes
+        self.data_type = data_type
+        self.features = features
+        self.classes = classes
+
 
 class Task(Enum):
-    LETTER_RECOGNITION = ('letter recognition', 0, numpy.arange(1, 17, dtype=int), int)  # directory, index of label, data columns, data type
-    SCRIBE_RECOGNITION = ('scribe recognition', 10, numpy.arange(0, 10, dtype=int), float)
+    LETTER_RECOGNITION = TaskMetadata('letter recognition', 0, numpy.arange(1, 17, dtype=int), int, LETTER_FEATURES, LETTER_CLASSES)
+    SCRIBE_RECOGNITION = TaskMetadata('scribe recognition', 10, numpy.arange(0, 10, dtype=int), float, SCRIBE_FEATURES, SCRIBE_CLASSES)
 
 
 class SampleSet:
@@ -47,17 +61,18 @@ class SampleSet:
 
 
 def parse_data(task: Task) -> Tuple[numpy.ndarray, numpy.array]:
-    filename = './datasets/' + task.value[0] + '/data'
+    task_metadata = task.value
+    filename = './datasets/' + task_metadata.directory + '/data'
     dataset = numpy.loadtxt(
         fname=filename,
         delimiter=',',
-        usecols=task.value[2],
-        dtype=task.value[3]
+        usecols=task_metadata.data_indexes,
+        dtype=task_metadata.data_type
     )
     labels = numpy.loadtxt(
         fname=filename,
         delimiter=',',
-        usecols=task.value[1],
+        usecols=task_metadata.label_index,
         dtype=str
     )
 
