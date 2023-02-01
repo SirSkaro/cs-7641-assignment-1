@@ -80,16 +80,16 @@ def parse_data(task: Task) -> Tuple[numpy.ndarray, numpy.array]:
     return dataset, labels
 
 
-def partition_samples(samples: numpy.ndarray, labels: numpy.array):
+def partition_samples(samples: numpy.ndarray, labels: numpy.array, percent_training: float = 0.9):
     sample_count = labels.size
-    training_set_size = int(sample_count * 0.9)
+    training_set_size = int(sample_count * percent_training)
 
     training_set = SampleSet(samples[:training_set_size], labels[:training_set_size])
     test_set = SampleSet(samples[training_set_size:], labels[training_set_size:])
     return training_set, test_set
 
 
-def get_training_and_test_sets(task: Task) -> Tuple[SampleSet, SampleSet]:
+def get_training_and_test_sets(task: Task, percent_training: float = 0.9) -> Tuple[SampleSet, SampleSet]:
     samples, labels = parse_data(task)
-    return partition_samples(samples, labels)
+    return partition_samples(samples, labels, percent_training)
 

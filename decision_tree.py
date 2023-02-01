@@ -25,15 +25,15 @@ def basic(task: Task):
     return classifier, error
 
 
-def pruning(task: Task):
-    training_set, test_set = data_utils.get_training_and_test_sets(task)
+def pruning(task: Task, percent_training: float = 0.9):
+    training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training)
     base_classifier = DecisionTreeClassifier(random_state=0)
 
     # Get candidate alpha values for pruning
     path = base_classifier.cost_complexity_pruning_path(training_set.samples, training_set.labels)
     candidate_alphas = np.array(path.ccp_alphas)
     print(f'Found {len(candidate_alphas)} candidate alphas')
-    candidate_alphas = candidate_alphas.round(decimals=4)
+    candidate_alphas = candidate_alphas.round(decimals=6)
     candidate_alphas = np.unique(candidate_alphas)
     print(f'Trimmed to {len(candidate_alphas)} candidate alphas')
 
@@ -87,7 +87,7 @@ def pruning(task: Task):
     return best_classifier, error
 
 
-def vizualize(task: Task, round_function):
+def visualize(task: Task, round_function):
     classifier, error = round_function(task)
     filename = f'graphs/decision trees/{task.name} - {round_function.__name__}'
     export = tree.export_graphviz(classifier, out_file=None,
