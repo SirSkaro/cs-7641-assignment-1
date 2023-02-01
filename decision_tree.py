@@ -39,13 +39,33 @@ def pruning(task: Task, percent_training: float = 0.9):
 
     # Train pruned classifiers
     pruned_classifiers = []
+    train_scores = []
+    test_scores = []
     for candidate_alpha in candidate_alphas:
         print(f'Fitting decision tree for alpha {candidate_alpha}...')
         pruned_classifier = DecisionTreeClassifier(random_state=0, ccp_alpha=candidate_alpha)
         pruned_classifier.fit(training_set.samples, training_set.labels)
+        train_score = pruned_classifier.score(training_set.samples, training_set.labels)
+        test_score = pruned_classifier.score(test_set.samples, test_set.labels)
+
         pruned_classifiers.append(pruned_classifier)
+        train_scores.append(train_score)
+        test_scores.append(test_score)
+
         print(f'Finished fitting tree for alpha {candidate_alpha} with {pruned_classifier.tree_.node_count} nodes '
-              f'and max depth {pruned_classifier.tree_.max_depth}')
+              f'and max depth {pruned_classifier.tree_.max_depth} '
+              f'| training score: {train_score} '
+              f'| test score: {test_score}')
+
+        # stopping condition: check for certain number of iterations and monotonically decreasing
+        if len(test_scores) % 20 == 0 and np.all(np.diff(test_scores[-20:]) <= 0):
+            break
+
+    candidate_alphas = candidate_alphas[:len(pruned_classifiers)]
+
+    print('Finished pruning trees')
+    print(f'\t Train scores: {train_scores}')
+    print(f'\t Train scores: {test_scores}')
 
     # Visualize number of nodes vs alpha
     node_counts = [classifiers.tree_.node_count for classifiers in pruned_classifiers]
@@ -62,13 +82,6 @@ def pruning(task: Task, percent_training: float = 0.9):
     #fig.savefig(f'graphs/decision tress/{task.name} - nodes+depth vs alpha.png')
 
     # Visualize accuracy
-    print('Scoring trees')
-    train_scores = [clf.score(training_set.samples, training_set.labels) for clf in pruned_classifiers]
-    test_scores = [clf.score(test_set.samples, test_set.labels) for clf in pruned_classifiers]
-    print('Finished scoring trees')
-    print(f'\t Train scores: {train_scores}')
-    print(f'\t Train scores: {test_scores}')
-
     fig, ax = plt.subplots()
     ax.set_xlabel("Alpha")
     ax.set_ylabel("Accuracy")
