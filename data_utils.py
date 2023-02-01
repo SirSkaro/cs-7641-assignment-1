@@ -2,6 +2,7 @@ from typing import Tuple
 
 from enum import Enum
 import numpy
+from sklearn.utils import shuffle
 
 
 LETTER_FEATURES = ['Box X Position', 'Box Y Position', 'Box Width', 'Box Height', 'Total Pixels',
@@ -80,16 +81,19 @@ def parse_data(task: Task) -> Tuple[numpy.ndarray, numpy.array]:
     return dataset, labels
 
 
-def partition_samples(samples: numpy.ndarray, labels: numpy.array, percent_training: float = 0.9):
+def partition_samples(samples: numpy.ndarray, labels: numpy.array, percent_training: float = 0.9, randomize: bool = False):
     sample_count = labels.size
     training_set_size = int(sample_count * percent_training)
+
+    if randomize:
+        samples, labels = shuffle(samples, labels)
 
     training_set = SampleSet(samples[:training_set_size], labels[:training_set_size])
     test_set = SampleSet(samples[training_set_size:], labels[training_set_size:])
     return training_set, test_set
 
 
-def get_training_and_test_sets(task: Task, percent_training: float = 0.9) -> Tuple[SampleSet, SampleSet]:
+def get_training_and_test_sets(task: Task, percent_training: float = 0.9, randomize: bool = False) -> Tuple[SampleSet, SampleSet]:
     samples, labels = parse_data(task)
-    return partition_samples(samples, labels, percent_training)
+    return partition_samples(samples, labels, percent_training, randomize)
 

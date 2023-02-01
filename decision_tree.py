@@ -25,8 +25,8 @@ def basic(task: Task):
     return classifier, error
 
 
-def pruning(task: Task, percent_training: float = 0.9):
-    training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training)
+def pruning(task: Task, percent_training: float = 0.9, shuffle: bool = False):
+    training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training, shuffle)
     base_classifier = DecisionTreeClassifier(random_state=0)
 
     # Get candidate alpha values for pruning
