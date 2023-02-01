@@ -8,10 +8,10 @@ from sklearn.neighbors import KNeighborsClassifier
 # https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
 
 
-def learn(task: Task):
+def learn(task: Task, k: int = 3):
     training_set, test_set = data_utils.get_training_and_test_sets(task)
     classifier = KNeighborsClassifier(
-        n_neighbors=3,
+        n_neighbors=k,
         weights='uniform',
         p=2, # Euclidiean metric used
         metric='minkowski',

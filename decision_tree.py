@@ -100,6 +100,55 @@ def pruning(task: Task, percent_training: float = 0.9, shuffle: bool = False):
     return best_classifier, error
 
 
+def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 10):
+    candidate_classifiers = []
+    for iteration in range(iterations):
+        print(f'Starting iteration {iteration}')
+        training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training, True)
+        base_classifier = DecisionTreeClassifier()
+
+        # Get candidate alpha values for pruning
+        path = base_classifier.cost_complexity_pruning_path(training_set.samples, training_set.labels)
+        candidate_alphas = np.array(path.ccp_alphas)
+        print(f'Found {len(candidate_alphas)} candidate alphas')
+        candidate_alphas = candidate_alphas.round(decimals=6)
+        candidate_alphas = np.unique(candidate_alphas)
+        print(f'Trimmed to {len(candidate_alphas)} candidate alphas')
+
+        # Train pruned classifiers
+        pruned_classifiers = []
+        train_scores = []
+        test_scores = []
+        for candidate_alpha in candidate_alphas:
+            print(f'Fitting decision tree for alpha {candidate_alpha}...')
+            pruned_classifier = DecisionTreeClassifier(random_state=0, ccp_alpha=candidate_alpha)
+            pruned_classifier.fit(training_set.samples, training_set.labels)
+            train_score = pruned_classifier.score(training_set.samples, training_set.labels)
+            test_score = pruned_classifier.score(test_set.samples, test_set.labels)
+
+            pruned_classifiers.append(pruned_classifier)
+            train_scores.append(train_score)
+            test_scores.append(test_score)
+
+            print(f'Finished fitting tree for alpha {candidate_alpha} with {pruned_classifier.tree_.node_count} nodes '
+                  f'and max depth {pruned_classifier.tree_.max_depth} '
+                  f'| training score: {train_score} '
+                  f'| test score: {test_score}')
+
+            # stopping condition: check for certain number of iterations and monotonically decreasing
+            if len(test_scores) % 20 == 0 and np.all(np.diff(test_scores[-20:]) <= 0):
+                break
+
+        best_index = np.argmax(test_scores)
+        best_classifier = pruned_classifiers[best_index]
+        error = 1 - test_scores[best_index]
+        candidate_classifiers.append((best_classifier, error))
+        print(f'Finished iteration {iteration} with best error {error}')
+
+    print(f'Candidate classifiers are {candidate_classifiers}')
+    return sorted(candidate_classifiers, key=lambda classifier_error_pair: classifier_error_pair[1])[0]
+
+
 def visualize(task: Task, round_function):
     classifier, error = round_function(task)
     filename = f'graphs/decision trees/{task.name} - {round_function.__name__}'
