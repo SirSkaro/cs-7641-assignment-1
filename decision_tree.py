@@ -105,7 +105,7 @@ def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 1
     candidate_classifiers = []
     for iteration in range(iterations):
         print(f'Starting iteration {iteration}')
-        training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training, True)
+        training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training, randomize=True)
         base_classifier = DecisionTreeClassifier()
 
         # Get candidate alpha values for pruning
@@ -151,8 +151,8 @@ def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 1
     return sorted(candidate_classifiers, key=lambda classifier_error_pair: classifier_error_pair[1])[0]
 
 
-def run_and_visualize(task: Task, round_function):
-    classifier, error = round_function(task)
+def run_and_visualize(task: Task, function):
+    classifier, error = function(task)
     visualize(classifier, task)
 
 
