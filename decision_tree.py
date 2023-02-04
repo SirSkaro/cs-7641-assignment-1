@@ -6,6 +6,7 @@ from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 import graphviz
 import matplotlib.pyplot as plt
+from time import time
 
 
 ### Docs used:
@@ -98,30 +99,6 @@ def pruning(task: Task, percent_training: float = 0.9, shuffle: bool = False):
     print(f'The best classifiers is at index {best_index} with an alpha of {candidate_alphas[best_index]}')
 
     return best_classifier, error
-
-
-def create_learning_curve(iterations: int = 1):
-    fig, ax = plt.subplots(2, 1)
-    errors = []
-    percentages = np.linspace(0, 1, 11)[7:-1]
-    for percent_training in percentages:
-        _, error = shuffle_prune(Task.SCRIBE_RECOGNITION, percent_training, iterations)
-        errors.append(error)
-
-    ax[0].plot(percentages, errors, marker="o", drawstyle="steps-post")
-    ax[0].set_xlabel("Expected Error")
-    ax[0].set_ylabel("Percentage Training Set")
-    ax[0].set_title("Scribe Recognition Learning Curve")
-
-    errors = []
-    for percent_training in percentages:
-        _, error = shuffle_prune(Task.LETTER_RECOGNITION, percent_training, iterations)
-        errors.append(error)
-
-    ax[1].plot(percentages, errors, marker="o", drawstyle="steps-post")
-    ax[1].set_xlabel("Expected Error")
-    ax[1].set_ylabel("Percentage Training Set")
-    ax[1].set_title("Letter Recognition Learning Curve")
 
 
 def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 10):
@@ -217,3 +194,43 @@ def statistics(clf: DecisionTreeClassifier):
 
     print(f'Total Nodes: {n_nodes} | Max Depth: {clf.tree_.max_depth} | Leaf Nodes: {clf.tree_.n_leaves} | Median leaf depth: {median_leaf_depth}')
     return leaves, node_depth
+
+
+def create_learning_curve(iterations: int = 1):
+    fig, ax = plt.subplots(2, 2)
+    errors = []
+    percentages = np.linspace(0, 1, 11)[8:-1]
+    training_times = []
+    for percent_training in percentages:
+        start = time()
+        _, error = shuffle_prune(Task.SCRIBE_RECOGNITION, percent_training, iterations)
+        end = time()
+        errors.append(error)
+        training_times.append(round(end - start, 2))
+
+    ax[0, 0].plot(percentages, errors, marker="o", drawstyle="steps-post")
+    ax[0, 0].set_xlabel("Expected Error")
+    ax[0, 0].set_ylabel("Percentage Training Set")
+    ax[0, 0].set_title("Scribe Recognition Learning Curve")
+    ax[0, 1].plot(percentages, training_times, marker="o", drawstyle="steps-post")
+    ax[0, 1].set_xlabel("Training Time (in Seconds)")
+    ax[0, 1].set_ylabel("Percentage Training Set")
+    ax[0, 1].set_title("Scribe Recognition Training Time")
+
+    errors = []
+    training_times = []
+    for percent_training in percentages:
+        start = time()
+        _, error = shuffle_prune(Task.LETTER_RECOGNITION, percent_training, iterations)
+        end = time()
+        errors.append(error)
+        training_times.append(round(end - start, 2))
+
+    ax[1, 0].plot(percentages, errors, marker="o", drawstyle="steps-post")
+    ax[1, 0].set_xlabel("Expected Error")
+    ax[1, 0].set_ylabel("Percentage Training Set")
+    ax[1, 0].set_title("Letter Recognition Learning Curve")
+    ax[1, 1].plot(percentages, training_times, marker="o", drawstyle="steps-post")
+    ax[1, 1].set_xlabel("Training Time (in Seconds)")
+    ax[1, 1].set_ylabel("Percentage Training Set")
+    ax[1, 1].set_title("Letter Recognition Training Time")
