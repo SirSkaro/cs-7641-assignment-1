@@ -96,7 +96,7 @@ def expectation_maximization(task: Task, error_increase_streak: int = 5):
     candidate_classifier = None
     error = 1
 
-    while (current_k is not previous_k) and (current_metric is not previous_metric):
+    while not ( (current_k == previous_k) and (current_metric == previous_metric) ):
         previous_metric = current_metric
         previous_k = current_k
         current_metric = iterate_metric(task, current_k, (training_set, test_set))[0].metric
