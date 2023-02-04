@@ -216,8 +216,8 @@ def create_learning_curve(iterations: int = 1):
     ax[0, 0].set_ylabel("Expected Error")
     ax[0, 0].set_title("Scribe Recognition Learning Curve")
     ax[0, 1].plot(percentages, training_times, marker="o", drawstyle="steps-post")
-    ax[0, 1].set_xlabel("Training Time (in Seconds)")
-    ax[0, 1].set_ylabel("Percentage Training Set")
+    ax[0, 1].set_xlabel("Percentage Training Set")
+    ax[0, 1].set_ylabel("Training Time (in Seconds)")
     ax[0, 1].set_title("Scribe Recognition Training Time")
 
     test_errors = []
@@ -236,6 +236,6 @@ def create_learning_curve(iterations: int = 1):
     ax[1, 0].set_ylabel("Expected Error")
     ax[1, 0].set_title("Letter Recognition Learning Curve")
     ax[1, 1].plot(percentages, training_times, marker="o", drawstyle="steps-post")
-    ax[1, 1].set_xlabel("Training Time (in Seconds)")
-    ax[1, 1].set_ylabel("Percentage Training Set")
+    ax[1, 1].set_xlabel("Percentage Training Set")
+    ax[1, 1].set_ylabel("Training Time (in Seconds)")
     ax[1, 1].set_title("Letter Recognition Training Time")
