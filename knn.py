@@ -87,24 +87,37 @@ def iterate_k(task: Task, metric: str, datasets: Tuple[SampleSet, SampleSet] = N
     return sorted(candidate_classifiers, key=lambda classifier_error_pair: classifier_error_pair[1])[0]
 
 
-def expectation_maximization(task: Task, error_increase_streak: int = 5):
-    training_set, test_set = data_utils.get_training_and_test_sets(task)
+def expectation_maximization(task: Task,
+                             initial_k: int = 10,
+                             error_increase_streak: int = 5,
+                             percent_training: float = 0.9,
+                             percent_validation: float = 0.2):
+
+    if percent_validation > 0:
+        training_set, validation_set, test_set = data_utils.get_training_validation_and_test_sets(task,
+                                                                                      percent_training=percent_training,
+                                                                                      percent_validation=percent_validation,
+                                                                                      randomize=True)
+    else:
+        training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training=percent_training, randomize=True)
+        validation_set = test_set
+
     previous_k = None
-    current_k = 1
+    current_k = initial_k
     previous_metric = None
     current_metric = USABLE_METRICS[0]
     candidate_classifier = None
-    error = 1
 
     while not ( (current_k == previous_k) and (current_metric == previous_metric) ):
         previous_metric = current_metric
         previous_k = current_k
-        current_metric = iterate_metric(task, current_k, (training_set, test_set))[0].metric
-        candidate_classifier, error = iterate_k(task, current_metric, datasets=(training_set, test_set), streak=error_increase_streak)
+        current_metric = iterate_metric(task, current_k, (training_set, validation_set))[0].metric
+        candidate_classifier = iterate_k(task, current_metric, datasets=(training_set, validation_set), streak=error_increase_streak)[0]
         current_k = candidate_classifier.n_neighbors
         print(f'Finished iteration. '
               f'\n\tPrevious/current metric: {previous_metric}/{current_metric}'
               f'\n\tPrevious/current k: {previous_k}/{current_k}')
 
+    error = 1.0 - candidate_classifier.score(test_set.samples, test_set.labels)
     return candidate_classifier, error
 
