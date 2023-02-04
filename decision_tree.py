@@ -142,9 +142,10 @@ def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 1
 
         best_index = np.argmax(test_scores)
         best_classifier = pruned_classifiers[best_index]
-        error = 1 - test_scores[best_index]
-        candidate_classifiers.append((best_classifier, error))
-        print(f'Finished iteration {iteration} with best error {error}')
+        test_error = 1 - test_scores[best_index]
+        train_error = 1 - train_scores[best_index]
+        candidate_classifiers.append((best_classifier, test_error, train_error))
+        print(f'Finished iteration {iteration} with best error {test_error}')
 
     print(f'Candidate classifiers are {candidate_classifiers}')
     return sorted(candidate_classifiers, key=lambda classifier_error_pair: classifier_error_pair[1])[0]
@@ -198,37 +199,41 @@ def statistics(clf: DecisionTreeClassifier):
 
 def create_learning_curve(iterations: int = 1):
     fig, ax = plt.subplots(2, 2)
-    errors = []
-    percentages = np.linspace(0, 1, 11)[8:-1]
+    test_errors = []
+    train_errors = []
+    percentages = np.linspace(0, 1, 11)[1:-1]
     training_times = []
     for percent_training in percentages:
         start = time()
-        _, error = shuffle_prune(Task.SCRIBE_RECOGNITION, percent_training, iterations)
+        _, test_error, train_error = shuffle_prune(Task.SCRIBE_RECOGNITION, percent_training, iterations)
         end = time()
-        errors.append(error)
+        test_errors.append(test_error)
+        train_errors.append(train_error)
         training_times.append(round(end - start, 2))
 
-    ax[0, 0].plot(percentages, errors, marker="o", drawstyle="steps-post")
-    ax[0, 0].set_xlabel("Expected Error")
-    ax[0, 0].set_ylabel("Percentage Training Set")
+    ax[0, 0].plot(percentages, test_errors, percentages, train_errors, marker="o", drawstyle="steps-post")
+    ax[0, 0].set_xlabel("Percentage Training Set")
+    ax[0, 0].set_ylabel("Expected Error")
     ax[0, 0].set_title("Scribe Recognition Learning Curve")
     ax[0, 1].plot(percentages, training_times, marker="o", drawstyle="steps-post")
     ax[0, 1].set_xlabel("Training Time (in Seconds)")
     ax[0, 1].set_ylabel("Percentage Training Set")
     ax[0, 1].set_title("Scribe Recognition Training Time")
 
-    errors = []
+    test_errors = []
+    train_errors = []
     training_times = []
     for percent_training in percentages:
         start = time()
-        _, error = shuffle_prune(Task.LETTER_RECOGNITION, percent_training, iterations)
+        _, test_error, train_error = shuffle_prune(Task.LETTER_RECOGNITION, percent_training, iterations)
         end = time()
-        errors.append(error)
+        test_errors.append(test_error)
+        train_errors.append(train_error)
         training_times.append(round(end - start, 2))
 
-    ax[1, 0].plot(percentages, errors, marker="o", drawstyle="steps-post")
-    ax[1, 0].set_xlabel("Expected Error")
-    ax[1, 0].set_ylabel("Percentage Training Set")
+    ax[1, 0].plot(percentages, test_errors, percentages, train_errors, marker="o", drawstyle="steps-post")
+    ax[1, 0].set_xlabel("Percentage Training Set")
+    ax[1, 0].set_ylabel("Expected Error")
     ax[1, 0].set_title("Letter Recognition Learning Curve")
     ax[1, 1].plot(percentages, training_times, marker="o", drawstyle="steps-post")
     ax[1, 1].set_xlabel("Training Time (in Seconds)")
