@@ -101,7 +101,7 @@ def pruning(task: Task, percent_training: float = 0.9, shuffle: bool = False):
     return best_classifier, error
 
 
-def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 10):
+def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 10, streak: int = 12):
     candidate_classifiers = []
     for iteration in range(iterations):
         print(f'Starting iteration {iteration}')
@@ -137,7 +137,7 @@ def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 1
                   f'| test score: {test_score}')
 
             # stopping condition: check for certain number of iterations and monotonically decreasing
-            if len(test_scores) % 12 == 0 and np.all(np.diff(test_scores[-12:]) <= 0):
+            if len(test_scores) % streak == 0 and np.all(np.diff(test_scores[-streak:]) <= 0):
                 break
 
         best_index = np.argmax(test_scores)
@@ -197,45 +197,34 @@ def statistics(clf: DecisionTreeClassifier):
     return leaves, node_depth
 
 
-def create_learning_curve(iterations: int = 1):
-    fig, ax = plt.subplots(2, 2)
-    test_errors = []
-    train_errors = []
+def create_learning_curve(iterations: int = 1, streak: int = 10):
+    fig, ax = plt.subplots(1, 2)
+
+    ax[0].set_title("Learning Curve")
+    ax[0].set_xlabel("Percentage Training Set")
+    ax[0].set_ylabel("Error")
+
+    ax[1].set_title("Training Time")
+    ax[1].set_xlabel("Percentage Training Set")
+    ax[1].set_ylabel("Training Time (in Seconds)")
+
     percentages = np.linspace(0, 1, 11)[1:-1]
-    training_times = []
-    for percent_training in percentages:
-        start = time()
-        _, test_error, train_error = shuffle_prune(Task.SCRIBE_RECOGNITION, percent_training, iterations)
-        end = time()
-        test_errors.append(test_error)
-        train_errors.append(train_error)
-        training_times.append(round(end - start, 2))
+    for task, name, linestyle in [(Task.SCRIBE_RECOGNITION, 'Scribe', 'dotted'), (Task.LETTER_RECOGNITION, 'Letter', 'dashed')]:
+        test_errors = []
+        train_errors = []
+        training_times = []
+        for percent_training in percentages:
+            start = time()
+            _, test_error, train_error = shuffle_prune(task, percent_training=percent_training, iterations=iterations, streak=streak)
+            end = time()
 
-    ax[0, 0].plot(percentages, test_errors, percentages, train_errors, marker="o", drawstyle="steps-post")
-    ax[0, 0].set_xlabel("Percentage Training Set")
-    ax[0, 0].set_ylabel("Expected Error")
-    ax[0, 0].set_title("Scribe Recognition Learning Curve")
-    ax[0, 1].plot(percentages, training_times, marker="o", drawstyle="steps-post")
-    ax[0, 1].set_xlabel("Percentage Training Set")
-    ax[0, 1].set_ylabel("Training Time (in Seconds)")
-    ax[0, 1].set_title("Scribe Recognition Training Time")
+            test_errors.append(test_error)
+            train_errors.append(train_error)
+            training_times.append(round(end - start, 2))
 
-    test_errors = []
-    train_errors = []
-    training_times = []
-    for percent_training in percentages:
-        start = time()
-        _, test_error, train_error = shuffle_prune(Task.LETTER_RECOGNITION, percent_training, iterations)
-        end = time()
-        test_errors.append(test_error)
-        train_errors.append(train_error)
-        training_times.append(round(end - start, 2))
+        ax[0].plot(percentages, test_errors, label=f'{name} Test Error', marker="o", drawstyle="steps-post", linestyle=linestyle)
+        ax[0].plot(percentages, train_errors, label=f'{name} Train Error', marker="o", drawstyle="steps-post", linestyle=linestyle)
+        ax[1].plot(percentages, training_times, label=f'{name} Classifier', marker="o", drawstyle="steps-post", linestyle=linestyle)
 
-    ax[1, 0].plot(percentages, test_errors, percentages, train_errors, marker="o", drawstyle="steps-post")
-    ax[1, 0].set_xlabel("Percentage Training Set")
-    ax[1, 0].set_ylabel("Expected Error")
-    ax[1, 0].set_title("Letter Recognition Learning Curve")
-    ax[1, 1].plot(percentages, training_times, marker="o", drawstyle="steps-post")
-    ax[1, 1].set_xlabel("Percentage Training Set")
-    ax[1, 1].set_ylabel("Training Time (in Seconds)")
-    ax[1, 1].set_title("Letter Recognition Training Time")
+    ax[0].legend(loc="best")
+    ax[1].legend(loc="best")
