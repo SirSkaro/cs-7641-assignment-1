@@ -13,6 +13,7 @@ import data_utils
 from data_utils import Task
 import decision_tree
 
+from sklearn.tree import DecisionTreeClassifier
 from sklearn import tree
 import numpy as np
 import graphviz

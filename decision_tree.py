@@ -27,7 +27,7 @@ def basic(task: Task):
 
 def pruning(task: Task, percent_training: float = 0.9, shuffle: bool = False):
     training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training, shuffle)
-    base_classifier = DecisionTreeClassifier(random_state=0)
+    base_classifier = DecisionTreeClassifier(random_state=0, criterion='entropy')
 
     # Get candidate alpha values for pruning
     path = base_classifier.cost_complexity_pruning_path(training_set.samples, training_set.labels)
@@ -100,6 +100,30 @@ def pruning(task: Task, percent_training: float = 0.9, shuffle: bool = False):
     return best_classifier, error
 
 
+def create_learning_curve(iterations: int = 1):
+    fig, ax = plt.subplots(2, 1)
+    errors = []
+    percentages = np.linspace(0, 1, 11)[7:-1]
+    for percent_training in percentages:
+        _, error = shuffle_prune(Task.SCRIBE_RECOGNITION, percent_training, iterations)
+        errors.append(error)
+
+    ax[0].plot(percentages, errors, marker="o", drawstyle="steps-post")
+    ax[0].set_xlabel("Expected Error")
+    ax[0].set_ylabel("Percentage Training Set")
+    ax[0].set_title("Scribe Recognition Learning Curve")
+
+    errors = []
+    for percent_training in percentages:
+        _, error = shuffle_prune(Task.LETTER_RECOGNITION, percent_training, iterations)
+        errors.append(error)
+
+    ax[1].plot(percentages, errors, marker="o", drawstyle="steps-post")
+    ax[1].set_xlabel("Expected Error")
+    ax[1].set_ylabel("Percentage Training Set")
+    ax[1].set_title("Letter Recognition Learning Curve")
+
+
 def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 10):
     candidate_classifiers = []
     for iteration in range(iterations):
@@ -136,7 +160,7 @@ def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 1
                   f'| test score: {test_score}')
 
             # stopping condition: check for certain number of iterations and monotonically decreasing
-            if len(test_scores) % 20 == 0 and np.all(np.diff(test_scores[-20:]) <= 0):
+            if len(test_scores) % 12 == 0 and np.all(np.diff(test_scores[-12:]) <= 0):
                 break
 
         best_index = np.argmax(test_scores)
@@ -149,9 +173,13 @@ def shuffle_prune(task: Task, percent_training: float = 0.9, iterations: int = 1
     return sorted(candidate_classifiers, key=lambda classifier_error_pair: classifier_error_pair[1])[0]
 
 
-def visualize(task: Task, round_function):
+def run_and_visualize(task: Task, round_function):
     classifier, error = round_function(task)
-    filename = f'graphs/decision trees/{task.name} - {round_function.__name__}'
+    visualize(classifier, task)
+
+
+def visualize(classifier: DecisionTreeClassifier, task: Task, function):
+    filename = f'graphs/decision trees/{task.name} - {function.__name__}'
     export = tree.export_graphviz(classifier, out_file=None,
                                   feature_names=task.value.features,
                                   class_names=task.value.classes,
@@ -160,3 +188,32 @@ def visualize(task: Task, round_function):
                                   impurity=True)
     graph = graphviz.Source(export)
     graph.render(filename)
+
+
+def statistics(clf: DecisionTreeClassifier):
+    n_nodes = clf.tree_.node_count
+    children_left = clf.tree_.children_left
+    children_right = clf.tree_.children_right
+
+    node_depth = np.zeros(shape=n_nodes, dtype=np.int64)
+    leaves = []
+    stack = [(0, 0)]
+    while len(stack) > 0:
+        node_id, depth = stack.pop()
+        node_depth[node_id] = depth
+
+        # If the left and right child of a node is not the same we have a split
+        # node
+        is_split_node = children_left[node_id] != children_right[node_id]
+        # If a split node, append left and right children and depth to `stack`
+        # so we can loop through them
+        if is_split_node:
+            stack.append((children_left[node_id], depth + 1))
+            stack.append((children_right[node_id], depth + 1))
+        else:
+            leaves.append(node_id)
+
+    median_leaf_depth = np.median(node_depth[leaves])
+
+    print(f'Total Nodes: {n_nodes} | Max Depth: {clf.tree_.max_depth} | Leaf Nodes: {clf.tree_.n_leaves} | Median leaf depth: {median_leaf_depth}')
+    return leaves, node_depth
