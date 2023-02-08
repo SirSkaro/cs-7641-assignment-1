@@ -4,8 +4,10 @@ from data_utils import Task, SampleSet
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics.pairwise import distance_metrics
 import numpy as np
+import matplotlib.pyplot as plt
 
 from typing import Tuple
+from time import time
 
 ### Docs used:
 # https://scikit-learn.org/stable/modules/neighbors.html
@@ -91,7 +93,7 @@ def expectation_maximization(task: Task,
                              initial_k: int = 10,
                              error_increase_streak: int = 5,
                              percent_training: float = 0.9,
-                             percent_validation: float = 0.2):
+                             percent_validation: float = 0):
 
     if percent_validation > 0:
         training_set, validation_set, test_set = data_utils.get_training_validation_and_test_sets(task,
@@ -121,3 +123,66 @@ def expectation_maximization(task: Task,
     error = 1.0 - candidate_classifier.score(test_set.samples, test_set.labels)
     return candidate_classifier, error
 
+
+def best_expectation_maximization_shuffle(task: Task,
+                                            iterations: int = 5,
+                                            initial_k: int = 10,
+                                            error_increase_streak: int = 5,
+                                            percent_training: float = 0.9,
+                                            percent_validation: float = 0):
+    candidate_classifiers = []
+    for iteration in range(iterations):
+        print(f'Starting iteration {iteration}')
+        candidate_classifier, error = expectation_maximization(task,
+                                                               initial_k=initial_k,
+                                                               percent_training=percent_training,
+                                                               percent_validation=percent_validation,
+                                                               error_increase_streak=error_increase_streak)
+        candidate_classifiers.append((candidate_classifier, error))
+
+    print(f'Candidate classifiers are {candidate_classifiers}')
+    return sorted(candidate_classifiers, key=lambda classifier_error_pair: classifier_error_pair[1])[0]
+
+
+def create_learning_curve():
+    fig, ax = plt.subplots(1, 2)
+
+    ax[0].set_title("Learning Curve")
+    ax[0].set_xlabel("Percentage Training Set")
+    ax[0].set_ylabel("Error")
+
+    ax[1].set_title("Training Time")
+    ax[1].set_xlabel("Percentage Training Set")
+    ax[1].set_ylabel("Training Time (in Seconds)")
+
+    percentages = np.linspace(0, 1, 11)[1:-1]
+    for task, name, linestyle in [(Task.SCRIBE_RECOGNITION, 'Scribe', 'dotted'),
+                                  ]:
+        test_errors = []
+        train_errors = []
+        training_times = []
+        configs = []
+        for percent_training in percentages:
+            start = time()
+            classifier, test_error = best_expectation_maximization_shuffle(task, iterations=5, error_increase_streak=5, percent_training=percent_training, percent_validation=0.0)
+            end = time()
+
+            test_errors.append(test_error)
+            train_errors.append(0.0)
+            training_times.append(round(end - start, 2))
+            configs.append((classifier.n_neighbors, classifier.metric))
+
+        ax[0].plot(percentages, test_errors, label=f'{name} Test Error', marker="o", drawstyle="steps-post",
+                   linestyle=linestyle)
+        ax[0].plot(percentages, train_errors, label=f'{name} Train Error', marker="o", drawstyle="steps-post",
+                   linestyle=linestyle)
+        ax[1].plot(percentages, training_times, label=f'{name} Classifier', marker="o", drawstyle="steps-post",
+                   linestyle=linestyle)
+
+        #for index, classifer in enumerate(classifiers):
+        #    ax[0].annotate(f'k={classifer.n_neighbors}\nmetric={classifer.metric}', (percentages[index], test_error[index]))
+
+    ax[0].legend(loc="best")
+    ax[1].legend(loc="best")
+
+    return ax, test_errors, configs

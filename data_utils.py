@@ -103,5 +103,5 @@ def get_training_validation_and_test_sets(task: Task,
                                           percent_validation: float = 0.2,
                                           randomize: bool = False) -> Tuple[SampleSet, SampleSet, SampleSet]:
     training_set, test_set = get_training_and_test_sets(task, percent_training=percent_training, randomize=randomize)
-    training_set, validation_set = partition_samples(training_set.samples, training_set.labels, percent_validation)
+    training_set, validation_set = partition_samples(training_set.samples, training_set.labels, 1 - percent_validation)
     return training_set, validation_set, test_set
