@@ -33,6 +33,11 @@ decision_tree.learn(Task.LETTER_RECOGNITION)
 import data_utils
 from data_utils import Task
 import numpy as np
+import neural_network
+
+letter_classifier, letter_error = neural_network.learn(Task.LETTER_RECOGNITION)
+scribe_classifier, scribe_error = neural_network.learn(Task.SCRIBE_RECOGNITION)
+
 
 training_set, test_set = data_utils.get_training_and_test_sets(Task.LETTER_RECOGNITION)
 
@@ -88,6 +93,7 @@ knn.learn(Task.LETTER_RECOGNITION)
 ----------------------Boosting----------------------------
 import data_utils
 from data_utils import Task
+import numpy as np
 import boost
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.base import ClassifierMixin
@@ -96,6 +102,15 @@ from sklearn.linear_model import Perceptron
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
 
+weak_classifier = DecisionTreeClassifier(max_depth=10)
+letter_classifier, letter_error = boost.learn(Task.LETTER_RECOGNITION, shuffle=True, weak_classifier=weak_classifier)
+scribe_classifier, scribe_error = boost.learn(Task.SCRIBE_RECOGNITION, shuffle=True, weak_classifier=weak_classifier)
+
+max_depths = np.array([tree.tree_.max_depth for tree  in letter_classifier.estimators_])
+np.where(max_depths < 16)
+
+weak_classifier = DecisionTreeClassifier(max_depth=20, ccp_alpha=0.0000005) # for letter
+weak_classifier = DecisionTreeClassifier(max_depth=20, ccp_alpha=0.000005) # for scribe
 weak_classifier = DecisionTreeClassifier(max_depth=15)
 weak_classifier = Perceptron(tol=1e-3, random_state=0)
 weak_classifier = MultinomialNB(force_alpha=True)

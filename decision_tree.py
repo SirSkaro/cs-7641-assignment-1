@@ -194,7 +194,7 @@ def statistics(clf: DecisionTreeClassifier):
     median_leaf_depth = np.median(node_depth[leaves])
 
     print(f'Total Nodes: {n_nodes} | Max Depth: {clf.tree_.max_depth} | Leaf Nodes: {clf.tree_.n_leaves} | Median leaf depth: {median_leaf_depth}')
-    return leaves, node_depth
+    return n_nodes, clf.tree_.max_depth, clf.tree_.n_leaves, median_leaf_depth
 
 
 def create_learning_curve(iterations: int = 1, streak: int = 10):

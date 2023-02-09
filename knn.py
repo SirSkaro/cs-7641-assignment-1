@@ -157,7 +157,7 @@ def create_learning_curve():
 
     percentages = np.linspace(0, 1, 11)[1:-1]
     for task, name, linestyle in [(Task.SCRIBE_RECOGNITION, 'Scribe', 'dotted'),
-                                  ]:
+                                  (Task.LETTER_RECOGNITION, 'Letter', 'dashed')]:
         test_errors = []
         train_errors = []
         training_times = []

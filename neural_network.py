@@ -17,7 +17,8 @@ def learn(task: Task):
 
     classifier = tf.keras.models.Sequential([
         tf.keras.layers.Input(shape=(training_set.num_features(),), name='input'),
-        tf.keras.layers.Dense(units=4, activation='sigmoid', name='hidden1'),
+        tf.keras.layers.Dense(units=12, activation='sigmoid', name='hidden1'),
+        tf.keras.layers.Dense(units=5, activation='sigmoid', name='hidden2'),
         tf.keras.layers.Dense(units=training_set.num_classes(), name='output'),
     ])
 
@@ -28,18 +29,22 @@ def learn(task: Task):
     )
 
     converged = False
-    required_mean_improvement = 0.015
+    required_mean_improvement = 0.035
     epoch = 0
-    epochs_per_run = 25
+    epochs_per_run = 100
+    previous_best = 0
     while not converged:
         history = classifier.fit(training_set.samples, training_set.labels_as_ints(),
                                  epochs=epoch + epochs_per_run, initial_epoch=epoch,
-                                 validation_split=0.05, shuffle=True)
+                                 validation_split=0.05, shuffle=False,
+                                 batch_size=128)
         epoch += epochs_per_run
         epoch_validation_accuracy = np.array(history.history['val_accuracy'][-epochs_per_run:])
-        improvement = epoch_validation_accuracy.max() - epoch_validation_accuracy.min()
+        current_best = epoch_validation_accuracy.max()
+        improvement = current_best - previous_best
         converged = improvement <= required_mean_improvement
         print('improvement for epoch is ~' + str(improvement))
+        previous_best = current_best
 
     test_set.use_label_to_int_map_from(training_set)
     loss, accuracy = classifier.evaluate(test_set.samples, test_set.labels_as_ints(), verbose=2)
