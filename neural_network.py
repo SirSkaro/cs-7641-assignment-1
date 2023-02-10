@@ -76,7 +76,10 @@ def learn(task: Task, shuffle: bool = False, hidden_layers: int = 3, percent_tra
     test_set.use_label_to_int_map_from(training_set)
     loss, accuracy = classifier.evaluate(test_set.samples, test_set.labels_as_ints(), verbose=2)
 
-    return classifier, 1.0 - accuracy, 1.0 - history.history['val_accuracy'][-1]
+    test_error = 1.0 - accuracy
+    train_error = 1.0 - history.history['accuracy'][-1]
+    validation_error = 1.0 - history.history['val_accuracy'][-1]
+    return classifier, test_error, train_error, validation_error
 
 
 def create_learning_curve():
@@ -95,21 +98,25 @@ def create_learning_curve():
                                          (Task.LETTER_RECOGNITION, 'Letter', 'dashed', 6)]:
         test_errors = []
         train_errors = []
+        validation_errors = []
         training_times = []
         for percent_training in percentages:
             start = time()
-            _, test_error, train_error = learn(task, percent_training=percent_training, shuffle=True,
+            _, test_error, train_error, validation_error = learn(task, percent_training=percent_training, shuffle=True,
                                                hidden_layers=hidden_layers, optimizer=Optimizer.ADA_DELTA,
                                                activation=Activation.SCALED_EXPONENTIAL_LINEAR_UNIT)
             end = time()
 
             test_errors.append(test_error)
             train_errors.append(train_error)
+            validation_errors.append(validation_error)
             training_times.append(round(end - start, 2))
 
         ax[0].plot(percentages, test_errors, label=f'{name} Test Error', marker="o", drawstyle="steps-post", linestyle=linestyle)
         ax[0].plot(percentages, train_errors, label=f'{name} Train Error', marker="o", drawstyle="steps-post", linestyle=linestyle)
+        ax[0].plot(percentages, validation_errors, label=f'{name} Validation Error', marker="o", drawstyle="steps-post", linestyle=linestyle)
         ax[1].plot(percentages, training_times, label=f'{name} Classifier', marker="o", drawstyle="steps-post", linestyle=linestyle)
 
     ax[0].legend(loc="best")
     ax[1].legend(loc="best")
+    
