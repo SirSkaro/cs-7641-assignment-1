@@ -36,7 +36,7 @@ import numpy as np
 import neural_network
 from neural_network import Activation, Optimizer
 
-letter_classifier, letter_error, letter_val_error = neural_network.learn(Task.LETTER_RECOGNITION, shuffle=True, hidden_layers=9, activation=Activation.SCALED_EXPONENTIAL_LINEAR_UNIT, optimizer=Optimizer.ADA_DELTA)
+letter_classifier, letter_error, letter_val_error = neural_network.learn(Task.LETTER_RECOGNITION, shuffle=True, hidden_layers=6, activation=Activation.SCALED_EXPONENTIAL_LINEAR_UNIT, optimizer=Optimizer.ADA_DELTA)
 scribe_classifier, scribe_error, scribe_val_error = neural_network.learn(Task.SCRIBE_RECOGNITION, shuffle=True, hidden_layers=6, activation=Activation.SCALED_EXPONENTIAL_LINEAR_UNIT, optimizer=Optimizer.ADA_DELTA)
 
 

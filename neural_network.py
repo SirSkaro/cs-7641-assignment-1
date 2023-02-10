@@ -4,6 +4,8 @@ from data_utils import Task
 import tensorflow as tf
 import numpy as np
 from enum import Enum
+import matplotlib.pyplot as plt
+from time import time
 
 ### Docs used:
 # https://scikit-learn.org/stable/modules/neural_networks_supervised.html
@@ -30,11 +32,11 @@ class Optimizer(Enum):
                                              ema_momentum=0.5, ema_overwrite_frequency=100)
 
 
-def learn(task: Task, shuffle: bool = False, hidden_layers: int = 3,
+def learn(task: Task, shuffle: bool = False, hidden_layers: int = 3, percent_training: float = 0.9,
           activation: Activation = Activation.SCALED_EXPONENTIAL_LINEAR_UNIT,
           optimizer: Optimizer = Optimizer.GRADIENT_DESCENT
           ):
-    training_set, test_set = data_utils.get_training_and_test_sets(task, randomize=shuffle)
+    training_set, test_set = data_utils.get_training_and_test_sets(task, percent_training=percent_training, randomize=shuffle)
     activation_function = activation.value[0]
     initializer = activation.value[1]
 
@@ -75,3 +77,39 @@ def learn(task: Task, shuffle: bool = False, hidden_layers: int = 3,
     loss, accuracy = classifier.evaluate(test_set.samples, test_set.labels_as_ints(), verbose=2)
 
     return classifier, 1.0 - accuracy, 1.0 - history.history['val_accuracy'][-1]
+
+
+def create_learning_curve():
+    fig, ax = plt.subplots(1, 2)
+
+    ax[0].set_title("Learning Curve")
+    ax[0].set_xlabel("Percentage Training Set")
+    ax[0].set_ylabel("Error")
+
+    ax[1].set_title("Training Time")
+    ax[1].set_xlabel("Percentage Training Set")
+    ax[1].set_ylabel("Training Time (in Seconds)")
+
+    percentages = np.linspace(0, 1, 11)[1:-1]
+    for task, name, linestyle, hidden_layers in [(Task.SCRIBE_RECOGNITION, 'Scribe', 'dotted', 6),
+                                         (Task.LETTER_RECOGNITION, 'Letter', 'dashed', 6)]:
+        test_errors = []
+        train_errors = []
+        training_times = []
+        for percent_training in percentages:
+            start = time()
+            _, test_error, train_error = learn(task, percent_training=percent_training, shuffle=True,
+                                               hidden_layers=hidden_layers, optimizer=Optimizer.ADA_DELTA,
+                                               activation=Activation.SCALED_EXPONENTIAL_LINEAR_UNIT)
+            end = time()
+
+            test_errors.append(test_error)
+            train_errors.append(train_error)
+            training_times.append(round(end - start, 2))
+
+        ax[0].plot(percentages, test_errors, label=f'{name} Test Error', marker="o", drawstyle="steps-post", linestyle=linestyle)
+        ax[0].plot(percentages, train_errors, label=f'{name} Train Error', marker="o", drawstyle="steps-post", linestyle=linestyle)
+        ax[1].plot(percentages, training_times, label=f'{name} Classifier', marker="o", drawstyle="steps-post", linestyle=linestyle)
+
+    ax[0].legend(loc="best")
+    ax[1].legend(loc="best")
