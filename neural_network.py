@@ -27,8 +27,8 @@ class Activation(Enum):
 
 
 class Optimizer(Enum):
-    GRADIENT_DESCENT = tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.5)
-    ADA_DELTA = tf.keras.optimizers.Adadelta(learning_rate=0.9, use_ema=True,
+    GRADIENT_DESCENT = lambda: tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.5)
+    ADA_DELTA = lambda: tf.keras.optimizers.Adadelta(learning_rate=0.9, use_ema=True,
                                              ema_momentum=0.5, ema_overwrite_frequency=100)
 
 
@@ -48,7 +48,7 @@ def learn(task: Task, shuffle: bool = False, hidden_layers: int = 3, percent_tra
 
     classifier = tf.keras.models.Sequential(layers)
     classifier.compile(
-        optimizer=optimizer.value,
+        optimizer=optimizer(),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=['accuracy']
     )
