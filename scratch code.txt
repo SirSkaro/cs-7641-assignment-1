@@ -107,7 +107,7 @@ letter_classifier, letter_error = boost.learn(Task.LETTER_RECOGNITION, shuffle=T
 scribe_classifier, scribe_error = boost.learn(Task.SCRIBE_RECOGNITION, shuffle=True, weak_classifier=weak_classifier)
 
 max_depths = np.array([tree.tree_.max_depth for tree  in letter_classifier.estimators_])
-np.where(max_depths < 16)
+np.where(max_depths < 20)
 
 weak_classifier = DecisionTreeClassifier(max_depth=20, ccp_alpha=0.0000005) # for letter
 weak_classifier = DecisionTreeClassifier(max_depth=20, ccp_alpha=0.000005) # for scribe
@@ -133,7 +133,11 @@ error = 1.0 - classifier.score(test_set.samples, test_set.labels)
 ----------------------SVM----------------------------
 import data_utils
 from data_utils import Task
+import svm
 from sklearn.svm import SVC
+
+letter_classifier, letter_error = svm.learn(Task.LETTER_RECOGNITION)
+scribe_classifier, scribe_error = svm.learn(Task.SCRIBE_RECOGNITION)
 
 ONE_VS_ONE = 'ovo'
 ONE_VS_REST = 'ovr'
