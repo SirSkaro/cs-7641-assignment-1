@@ -54,7 +54,7 @@ def weighted_shuffle(task: Task, kernel: str, C: float, percent_training: float 
         class_weight='balanced',
         decision_function_shape=ONE_VS_ONE,
         random_state=0,
-        cache_size=2000  # in MB
+        cache_size=4000  # in MB
     )
 
     classifier.fit(training_set.samples, training_set.labels)
