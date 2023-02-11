@@ -119,4 +119,3 @@ def create_learning_curve():
 
     ax[0].legend(loc="best")
     ax[1].legend(loc="best")
-    
